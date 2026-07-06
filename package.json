@@ -1,11 +1,14 @@
 {
-  "name": "chatwoot-mcp-server",
+  "name": "@gibahjoe/chatwoot-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for Chatwoot API integration - manage conversations, contacts, and messages",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "chatwoot-mcp-server": "dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "dist",
@@ -39,11 +42,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hugoblanc/chatwoot-mcp.git"
+    "url": "git+https://github.com/gibahjoe/chatwoot-mcp.git"
   },
-  "homepage": "https://github.com/hugoblanc/chatwoot-mcp#readme",
+  "homepage": "https://github.com/gibahjoe/chatwoot-mcp#readme",
   "bugs": {
-    "url": "https://github.com/hugoblanc/chatwoot-mcp/issues"
+    "url": "https://github.com/gibahjoe/chatwoot-mcp/issues"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",

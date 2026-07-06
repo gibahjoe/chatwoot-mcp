@@ -48,7 +48,7 @@ chatwoot-mcp-server
 ### From source
 
 ```bash
-git clone https://github.com/hugoblanc/chatwoot-mcp.git
+git clone https://github.com/gibahjoe/chatwoot-mcp.git
 cd chatwoot-mcp
 npm install
 npm run build
@@ -146,11 +146,16 @@ Once connected, you can ask Claude things like:
 
 ## Testing
 
-Run integration tests:
+Run tests:
 
 ```bash
 npm test
 ```
+
+By default, the test suite runs mocked/offline unit tests. Live Chatwoot
+integration tests are skipped unless `CHATWOOT_BASE_URL` and
+`CHATWOOT_API_TOKEN` are set. Set `CHATWOOT_ACCOUNT_ID` to override the default
+integration account ID of `3`.
 
 Watch mode:
 ```bash
@@ -205,6 +210,21 @@ npm run build
 ```
 
 Builds TypeScript to JavaScript in the `dist/` directory.
+
+### Releasing
+
+Release Please manages version bumps, changelog updates, tags, and GitHub
+Releases via `.github/workflows/release.yml`. Conventional commits merged to
+`main` will open or update a release PR; merging that PR creates the release
+tag, then the workflow checks out that tag and publishes the package to npm.
+
+Publishing uses npm trusted publishing, so no npm token secret is required.
+Configure the package's trusted publisher on npmjs.com with:
+
+- Organization/user: `gibahjoe`
+- Repository: `chatwoot-mcp`
+- Workflow filename: `release.yml`
+- Allowed action: `npm publish`
 
 ## Troubleshooting
 

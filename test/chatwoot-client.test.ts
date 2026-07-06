@@ -4,10 +4,12 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createChatwootClient } from "../src/services/chatwoot-client.js";
 
-describe("Chatwoot Client - API Token Authentication", () => {
-  const baseUrl = process.env.CHATWOOT_BASE_URL!;
-  const apiToken = process.env.CHATWOOT_API_TOKEN!;
+const baseUrl = process.env.CHATWOOT_BASE_URL;
+const apiToken = process.env.CHATWOOT_API_TOKEN;
+const accountId = Number(process.env.CHATWOOT_ACCOUNT_ID || 3);
+const describeIntegration = baseUrl && apiToken ? describe : describe.skip;
 
+describeIntegration("Chatwoot Client - API Token Authentication", () => {
   beforeAll(() => {
     if (!baseUrl || !apiToken) {
       throw new Error(
@@ -33,12 +35,12 @@ describe("Chatwoot Client - API Token Authentication", () => {
       apiAccessToken: apiToken,
     });
 
-    // Use account 3 as seen in the curl example
+    // Defaults to account 3 for existing live-instance compatibility.
     const { data, error, response } = await client.GET(
       "/api/v1/accounts/{account_id}/conversations",
       {
         params: {
-          path: { account_id: 3 },
+          path: { account_id: accountId },
           query: { status: "open" } as any,
         },
       }
@@ -72,7 +74,7 @@ describe("Chatwoot Client - API Token Authentication", () => {
       "/api/v1/accounts/{account_id}/conversations",
       {
         params: {
-          path: { account_id: 3 },
+          path: { account_id: accountId },
           query: { status: "open" } as any,
         },
       }
