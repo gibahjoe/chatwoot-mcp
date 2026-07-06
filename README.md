@@ -6,6 +6,7 @@ Model Context Protocol (MCP) server for Chatwoot API integration. Enables AI ass
 
 - **Conversations Management**: List, filter, and retrieve conversation details
 - **Message Operations**: Read message history and send new messages
+- **Help Center Management**: List portals and create or update help center content
 - **Type-Safe**: Built with TypeScript using OpenAPI-generated types
 - **Flexible Auth**: Supports both API token (recommended) and JWT authentication
 
@@ -20,6 +21,14 @@ Model Context Protocol (MCP) server for Chatwoot API integration. Enables AI ass
 
 - `chatwoot_list_messages` - List all messages in a conversation
 - `chatwoot_create_message` - Send a message or create an internal note
+
+### Help Center
+
+- `chatwoot_list_help_center_portals` - List help center portals in an account
+- `chatwoot_create_help_center_portal` - Create a help center portal
+- `chatwoot_update_help_center_portal` - Update a help center portal
+- `chatwoot_create_help_center_category` - Create a help center category
+- `chatwoot_create_help_center_article` - Create a help center article
 
 ## Installation
 
@@ -131,6 +140,9 @@ Once connected, you can ask Claude things like:
 - "List all messages in conversation #456"
 - "Send a reply to conversation #789 saying 'Thank you for contacting us!'"
 - "Add an internal note to conversation #101 about the customer's issue"
+- "List help center portals in account 3"
+- "Create a draft help center article in portal 'user-guide'"
+- "Create a help center category called Troubleshooting"
 
 ## Testing
 
@@ -162,6 +174,7 @@ chatwoot-mcp-server/
 │   │   └── common.ts             # Shared Zod schemas
 │   └── tools/
 │       ├── conversations.ts      # Conversation tools
+│       ├── help-center.ts        # Help center portal/category/article tools
 │       └── messages.ts           # Message tools
 ├── test/                         # Integration tests
 ├── swagger.json                  # Chatwoot OpenAPI spec

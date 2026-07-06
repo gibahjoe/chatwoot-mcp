@@ -26,6 +26,18 @@ import {
   createMessage,
   CreateMessageSchema,
 } from "./tools/messages.js";
+import {
+  listHelpCenterPortals,
+  ListHelpCenterPortalsSchema,
+  createHelpCenterPortal,
+  CreateHelpCenterPortalSchema,
+  updateHelpCenterPortal,
+  UpdateHelpCenterPortalSchema,
+  createHelpCenterCategory,
+  CreateHelpCenterCategorySchema,
+  createHelpCenterArticle,
+  CreateHelpCenterArticleSchema,
+} from "./tools/help-center.js";
 
 // Validate environment variables
 function validateEnv() {
@@ -216,6 +228,138 @@ Examples:
       },
     },
     createMessage
+  );
+
+  // Help Center
+  server.registerTool(
+    "chatwoot_list_help_center_portals",
+    {
+      title: "List Chatwoot Help Center Portals",
+      description: `List help center portals for a Chatwoot account.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - response_format (string): Output format - "markdown" or "json" (default: "markdown")
+
+Returns:
+  A list of help center portals with locale configuration, linked inbox, article counts, category counts, and domain metadata.`,
+      inputSchema: ListHelpCenterPortalsSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    listHelpCenterPortals
+  );
+
+  server.registerTool(
+    "chatwoot_create_help_center_portal",
+    {
+      title: "Create Chatwoot Help Center Portal",
+      description: `Create a help center portal in a Chatwoot account.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - name (string): Help center name (required)
+  - slug (string): URL slug for the help center (required)
+  - color (string): Header color in hex format (optional)
+  - custom_domain (string): Custom help center domain (optional)
+  - header_text (string): Help center header text (optional)
+  - homepage_link (string): Main website or dashboard URL (optional)
+  - page_title (string): Browser page title (optional)
+  - archived (boolean): Whether the portal is archived (optional)
+  - config (object): Locale config with allowed_locales and default_locale (optional)`,
+      inputSchema: CreateHelpCenterPortalSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    createHelpCenterPortal
+  );
+
+  server.registerTool(
+    "chatwoot_update_help_center_portal",
+    {
+      title: "Update Chatwoot Help Center Portal",
+      description: `Update a help center portal in a Chatwoot account.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string or number): Help center portal slug or numeric identifier (required)
+  - name, slug, color, custom_domain, header_text, homepage_link, page_title, archived, config: Portal fields to update`,
+      inputSchema: UpdateHelpCenterPortalSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    updateHelpCenterPortal
+  );
+
+  server.registerTool(
+    "chatwoot_create_help_center_category",
+    {
+      title: "Create Chatwoot Help Center Category",
+      description: `Create a category in a Chatwoot help center portal.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string or number): Help center portal slug or numeric identifier (required)
+  - name (string): Category name (required)
+  - description (string): Category description (optional)
+  - slug (string): Category URL slug (optional)
+  - locale (string): Category locale (optional)
+  - icon (string): Category icon as a string (optional)
+  - position (number): Sort position (optional)
+  - parent_category_id (number): Parent category ID (optional)
+  - associated_category_id (number): Associated category ID for related locales/categories (optional)`,
+      inputSchema: CreateHelpCenterCategorySchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    createHelpCenterCategory
+  );
+
+  server.registerTool(
+    "chatwoot_create_help_center_article",
+    {
+      title: "Create Chatwoot Help Center Article",
+      description: `Create an article in a Chatwoot help center portal.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string or number): Help center portal slug or numeric identifier (required)
+  - title (string): Article title (required)
+  - content (string): Article body content (required)
+  - slug (string): Article URL slug (optional)
+  - description (string): Article description (optional)
+  - category_id (number): Category ID (optional)
+  - author_id (number): Author agent ID (optional)
+  - status (string): "draft", "published", or "archived" (default: "draft")
+  - locale (string): Article locale (optional)
+  - position (number): Sort position (optional)
+  - associated_article_id (number): Associated article ID for related locales/articles (optional)
+  - meta (object): Search metadata such as tags, title, or description (optional)`,
+      inputSchema: CreateHelpCenterArticleSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    createHelpCenterArticle
   );
 
   // Start server
