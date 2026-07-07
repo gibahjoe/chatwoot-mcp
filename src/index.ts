@@ -33,10 +33,16 @@ import {
   CreateHelpCenterPortalSchema,
   updateHelpCenterPortal,
   UpdateHelpCenterPortalSchema,
+  listHelpCenterCategories,
+  ListHelpCenterCategoriesSchema,
   createHelpCenterCategory,
   CreateHelpCenterCategorySchema,
+  listHelpCenterArticles,
+  ListHelpCenterArticlesSchema,
   createHelpCenterArticle,
   CreateHelpCenterArticleSchema,
+  updateHelpCenterArticle,
+  UpdateHelpCenterArticleSchema,
 } from "./tools/help-center.js";
 
 // Validate environment variables
@@ -290,7 +296,7 @@ Args:
 
 Args:
   - account_id (number): The numeric ID of the Chatwoot account (required)
-  - portal_id (string or number): Help center portal slug or numeric identifier (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
   - name, slug, color, custom_domain, header_text, homepage_link, page_title, archived, config: Portal fields to update`,
       inputSchema: UpdateHelpCenterPortalSchema,
       annotations: {
@@ -304,6 +310,32 @@ Args:
   );
 
   server.registerTool(
+    "chatwoot_list_help_center_categories",
+    {
+      title: "List Chatwoot Help Center Categories",
+      description: `List categories in a Chatwoot help center portal.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
+  - locale (string): Locale filter, such as "en" (optional)
+  - page (number): Page number for pagination, starts at 1 (default: 1)
+  - response_format (string): Output format - "markdown" or "json" (default: "markdown")
+
+Returns:
+  A list of help center categories with article counts and pagination metadata.`,
+      inputSchema: ListHelpCenterCategoriesSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    listHelpCenterCategories
+  );
+
+  server.registerTool(
     "chatwoot_create_help_center_category",
     {
       title: "Create Chatwoot Help Center Category",
@@ -311,7 +343,7 @@ Args:
 
 Args:
   - account_id (number): The numeric ID of the Chatwoot account (required)
-  - portal_id (string or number): Help center portal slug or numeric identifier (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
   - name (string): Category name (required)
   - description (string): Category description (optional)
   - slug (string): Category URL slug (optional)
@@ -332,6 +364,36 @@ Args:
   );
 
   server.registerTool(
+    "chatwoot_list_help_center_articles",
+    {
+      title: "List Chatwoot Help Center Articles",
+      description: `List articles in a Chatwoot help center portal.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
+  - locale (string): Locale filter, such as "en" (optional)
+  - category_slug (string): Category slug filter, such as "downloads-and-offline" (optional)
+  - query (string): Full-text search across article title, description, and content (optional)
+  - status (string): Filter by "draft", "published", or "archived" (optional)
+  - author_id (number): Filter by author user ID (optional)
+  - page (number): Page number for pagination, starts at 1 (default: 1)
+  - response_format (string): Output format - "markdown" or "json" (default: "markdown")
+
+Returns:
+  A list of help center articles with status, category, author, view counts, and pagination metadata.`,
+      inputSchema: ListHelpCenterArticlesSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    listHelpCenterArticles
+  );
+
+  server.registerTool(
     "chatwoot_create_help_center_article",
     {
       title: "Create Chatwoot Help Center Article",
@@ -339,14 +401,14 @@ Args:
 
 Args:
   - account_id (number): The numeric ID of the Chatwoot account (required)
-  - portal_id (string or number): Help center portal slug or numeric identifier (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
   - title (string): Article title (required)
   - content (string): Article body content (required)
   - slug (string): Article URL slug (optional)
   - description (string): Article description (optional)
   - category_id (number): Category ID (optional)
   - author_id (number): Author agent ID (optional)
-  - status (string): "draft", "published", or "archived" (default: "draft")
+  - status (string): "draft", "published", or "archived"; tool sends Chatwoot's numeric enum value (default: "draft")
   - locale (string): Article locale (optional)
   - position (number): Sort position (optional)
   - associated_article_id (number): Associated article ID for related locales/articles (optional)
@@ -360,6 +422,38 @@ Args:
       },
     },
     createHelpCenterArticle
+  );
+
+  server.registerTool(
+    "chatwoot_update_help_center_article",
+    {
+      title: "Update Chatwoot Help Center Article",
+      description: `Update an article in a Chatwoot help center portal.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
+  - article_id (number): Article ID to update (required)
+  - title (string): Article title (optional)
+  - content (string): Article body content (optional)
+  - slug (string): Article URL slug (optional)
+  - description (string): Article description (optional)
+  - category_id (number): Category ID (optional)
+  - author_id (number): Author agent ID (optional)
+  - status (string): "draft", "published", or "archived"; tool sends Chatwoot's numeric enum value (optional)
+  - locale (string): Article locale (optional)
+  - position (number): Sort position (optional)
+  - associated_article_id (number): Associated article ID for related locales/articles (optional)
+  - meta (object): Search metadata such as tags, title, or description (optional)`,
+      inputSchema: UpdateHelpCenterArticleSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    updateHelpCenterArticle
   );
 
   // Start server

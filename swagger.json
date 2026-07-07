@@ -4113,6 +4113,62 @@
           "$ref": "#/components/parameters/portal_id"
         }
       ],
+      "get": {
+        "tags": [
+          "Help Center"
+        ],
+        "operationId": "list-all-categories-in-portal",
+        "summary": "List all categories",
+        "description": "List all categories in a help center portal",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Filter categories by locale"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false,
+            "description": "Page number for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/category_list"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "Help Center"
@@ -4168,6 +4224,103 @@
           "$ref": "#/components/parameters/portal_id"
         }
       ],
+      "get": {
+        "tags": [
+          "Help Center"
+        ],
+        "operationId": "list-all-articles-in-portal",
+        "summary": "List all articles",
+        "description": "List all articles in a help center portal",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Locale filter for articles"
+          },
+          {
+            "name": "category_slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Category slug filter. Omit to list articles across all categories."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Full-text search query across article title, description, and content"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "archived"
+              ]
+            },
+            "description": "Article status filter"
+          },
+          {
+            "name": "author_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filter articles by author user ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/article_list"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "Help Center"
@@ -4175,6 +4328,70 @@
         "operationId": "add-new-article-to-account",
         "summary": "Add a new article",
         "description": "Add a new article to portal",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/article_create_update_payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/article"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_id}/portals/{id}/articles/{article_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/account_id"
+        },
+        {
+          "$ref": "#/components/parameters/portal_id"
+        },
+        {
+          "name": "article_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          },
+          "description": "The numeric ID of the help center article"
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Help Center"
+        ],
+        "operationId": "update-article-in-portal",
+        "summary": "Update an article",
+        "description": "Update an article in a help center portal",
         "security": [
           {
             "userApiKey": []
@@ -8416,13 +8633,28 @@
             "type": "string"
           },
           "position": {
-            "type": "integer"
+            "type": "integer",
+            "nullable": true
           },
           "portal_id": {
             "type": "integer"
           },
           "account_id": {
             "type": "integer"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "The icon of the category as a string"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "articles_count": {
+                "type": "integer",
+                "description": "Number of articles in the category"
+              }
+            }
           },
           "associated_category_id": {
             "type": "integer",
@@ -8431,6 +8663,31 @@
           "parent_category_id": {
             "type": "integer",
             "description": "To define parent category, e.g product documentation has multiple level features in sales category or in engineering category."
+          }
+        }
+      },
+      "category_list": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/category"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/category_list_meta"
+          }
+        }
+      },
+      "category_list_meta": {
+        "type": "object",
+        "properties": {
+          "current_page": {
+            "type": "integer"
+          },
+          "categories_count": {
+            "type": "integer"
           }
         }
       },
@@ -8444,14 +8701,20 @@
             "type": "string",
             "description": "The text content."
           },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "The article description."
+          },
           "meta": {
             "type": "object"
           },
           "position": {
-            "type": "integer"
+            "type": "integer",
+            "nullable": true
           },
           "status": {
-            "type": "integer",
+            "type": "string",
             "enum": [
               "draft",
               "published",
@@ -8465,7 +8728,17 @@
             "type": "string"
           },
           "views": {
+            "type": "integer",
+            "nullable": true
+          },
+          "updated_at": {
             "type": "integer"
+          },
+          "category": {
+            "$ref": "#/components/schemas/article_category"
+          },
+          "author": {
+            "$ref": "#/components/schemas/article_author"
           },
           "portal_id": {
             "type": "integer"
@@ -8485,6 +8758,110 @@
           "associated_article_id": {
             "type": "integer",
             "description": "To associate similar articles to each other, e.g to provide the link for the reference."
+          }
+        }
+      },
+      "article_list": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/article"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/article_list_meta"
+          }
+        }
+      },
+      "article_list_meta": {
+        "type": "object",
+        "properties": {
+          "all_articles_count": {
+            "type": "integer"
+          },
+          "archived_articles_count": {
+            "type": "integer"
+          },
+          "articles_count": {
+            "type": "integer"
+          },
+          "current_page": {
+            "type": "string"
+          },
+          "draft_articles_count": {
+            "type": "integer"
+          },
+          "mine_articles_count": {
+            "type": "integer"
+          },
+          "published_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "article_category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "article_author": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "account_id": {
+            "type": "integer"
+          },
+          "availability_status": {
+            "type": "string"
+          },
+          "auto_offline": {
+            "type": "boolean"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "available_name": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "thumbnail": {
+            "type": "string",
+            "nullable": true
+          },
+          "custom_role_id": {
+            "type": "integer",
+            "nullable": true
           }
         }
       },

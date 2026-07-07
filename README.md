@@ -27,8 +27,11 @@ Model Context Protocol (MCP) server for Chatwoot API integration. Enables AI ass
 - `chatwoot_list_help_center_portals` - List help center portals in an account
 - `chatwoot_create_help_center_portal` - Create a help center portal
 - `chatwoot_update_help_center_portal` - Update a help center portal
+- `chatwoot_list_help_center_categories` - List help center categories in a portal
 - `chatwoot_create_help_center_category` - Create a help center category
+- `chatwoot_list_help_center_articles` - List help center articles in a portal, optionally filtered by category
 - `chatwoot_create_help_center_article` - Create a help center article
+- `chatwoot_update_help_center_article` - Update an existing help center article
 
 ## Installation
 
@@ -141,7 +144,10 @@ Once connected, you can ask Claude things like:
 - "Send a reply to conversation #789 saying 'Thank you for contacting us!'"
 - "Add an internal note to conversation #101 about the customer's issue"
 - "List help center portals in account 3"
+- "List help center categories in portal slug 'user-guide' for locale 'en'"
+- "Search draft help center articles in portal slug 'user-guide' for 'downloads'"
 - "Create a draft help center article in portal 'user-guide'"
+- "Update article 106 in portal 'user-guide' with revised content"
 - "Create a help center category called Troubleshooting"
 
 ## Testing

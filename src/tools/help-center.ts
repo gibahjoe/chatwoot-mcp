@@ -10,8 +10,9 @@ import { handleApiError } from "../services/error-handler.js";
 
 const PortalIdSchema = z.object({
   portal_id: z
-    .union([z.string().min(1), z.number().int().positive()])
-    .describe("The help center portal slug or numeric identifier"),
+    .string()
+    .min(1)
+    .describe("The help center portal slug. Chatwoot names this path parameter 'id'."),
 });
 
 const PortalConfigSchema = z
@@ -286,6 +287,102 @@ export async function updateHelpCenterPortal(
 }
 
 /**
+ * Schema for listing help center categories
+ */
+export const ListHelpCenterCategoriesSchema = AccountIdSchema.merge(
+  PortalIdSchema
+)
+  .merge(ResponseFormatSchema)
+  .extend({
+    locale: z.string().min(1).optional().describe("Category locale filter"),
+    page: z
+      .number()
+      .int()
+      .min(1)
+      .default(1)
+      .describe("Page number for pagination"),
+  })
+  .strict();
+
+export type ListHelpCenterCategoriesInput = z.infer<
+  typeof ListHelpCenterCategoriesSchema
+>;
+
+/**
+ * List help center categories in a portal
+ */
+export async function listHelpCenterCategories(
+  params: ListHelpCenterCategoriesInput
+) {
+  try {
+    const client = getClient();
+
+    const { data, error, response } = await client.GET(
+      "/api/v1/accounts/{account_id}/portals/{id}/categories",
+      {
+        params: {
+          path: {
+            account_id: params.account_id,
+            id: String(params.portal_id),
+          },
+          query: {
+            locale: params.locale,
+            page: params.page,
+          },
+        },
+      }
+    );
+
+    if (error || !data) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: handleApiError({ response, error }),
+          },
+        ],
+      };
+    }
+
+    const output = {
+      categories: ((data as any).payload || []).map(formatCategory),
+      meta: (data as any).meta || {},
+    };
+
+    if (output.categories.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "No help center categories found.",
+          },
+        ],
+        structuredContent: output,
+      };
+    }
+
+    const textContent =
+      params.response_format === ResponseFormat.MARKDOWN
+        ? formatCategoriesMarkdown(output.categories, output.meta)
+        : JSON.stringify(output, null, 2);
+
+    return {
+      content: [{ type: "text" as const, text: textContent }],
+      structuredContent: output,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: handleApiError(error),
+        },
+      ],
+    };
+  }
+}
+
+/**
  * Schema for creating a help center category
  */
 export const CreateHelpCenterCategorySchema = AccountIdSchema.merge(
@@ -393,6 +490,126 @@ const ArticleStatusValue = {
 } as const;
 
 /**
+ * Schema for listing help center articles
+ */
+export const ListHelpCenterArticlesSchema = AccountIdSchema.merge(
+  PortalIdSchema
+)
+  .merge(ResponseFormatSchema)
+  .merge(
+    z.object({
+      locale: z.string().min(1).optional().describe("Article locale filter"),
+      category_slug: z
+        .string()
+        .optional()
+        .describe("Category slug filter. Omit or leave blank to list all articles."),
+      query: z
+        .string()
+        .optional()
+        .describe("Full-text search query across article title, description, and content"),
+      status: z
+        .enum(["draft", "published", "archived"])
+        .optional()
+        .describe("Article status filter"),
+      author_id: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Filter articles by author user ID"),
+      page: z
+        .number()
+        .int()
+        .min(1)
+        .default(1)
+        .describe("Page number for pagination"),
+    })
+  )
+  .strict();
+
+export type ListHelpCenterArticlesInput = z.infer<
+  typeof ListHelpCenterArticlesSchema
+>;
+
+/**
+ * List help center articles in a portal
+ */
+export async function listHelpCenterArticles(
+  params: ListHelpCenterArticlesInput
+) {
+  try {
+    const client = getClient();
+
+    const { data, error, response } = await client.GET(
+      "/api/v1/accounts/{account_id}/portals/{id}/articles",
+      {
+        params: {
+          path: {
+            account_id: params.account_id,
+            id: String(params.portal_id),
+          },
+          query: {
+            page: params.page,
+            locale: params.locale,
+            category_slug: params.category_slug || undefined,
+            query: params.query,
+            status: params.status,
+            author_id: params.author_id,
+          },
+        },
+      }
+    );
+
+    if (error || !data) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: handleApiError({ response, error }),
+          },
+        ],
+      };
+    }
+
+    const output = {
+      articles: ((data as any).payload || []).map(formatArticle),
+      meta: (data as any).meta || {},
+    };
+
+    if (output.articles.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "No help center articles found.",
+          },
+        ],
+        structuredContent: output,
+      };
+    }
+
+    const textContent =
+      params.response_format === ResponseFormat.MARKDOWN
+        ? formatArticlesMarkdown(output.articles, output.meta)
+        : JSON.stringify(output, null, 2);
+
+    return {
+      content: [{ type: "text" as const, text: textContent }],
+      structuredContent: output,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: handleApiError(error),
+        },
+      ],
+    };
+  }
+}
+
+/**
  * Schema for creating a help center article
  */
 export const CreateHelpCenterArticleSchema = AccountIdSchema.merge(
@@ -440,6 +657,64 @@ export const CreateHelpCenterArticleSchema = AccountIdSchema.merge(
 
 export type CreateHelpCenterArticleInput = z.infer<
   typeof CreateHelpCenterArticleSchema
+>;
+
+/**
+ * Schema for updating a help center article
+ */
+export const UpdateHelpCenterArticleSchema = AccountIdSchema.merge(
+  PortalIdSchema
+)
+  .merge(
+    z.object({
+      article_id: z
+        .number()
+        .int()
+        .positive()
+        .describe("Numeric ID of the article to update"),
+      title: z.string().min(1).optional().describe("Article title"),
+      content: z.string().min(1).optional().describe("Article body content"),
+      slug: z.string().min(1).optional().describe("Article URL slug"),
+      position: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Article sort position within the category"),
+      description: z.string().optional().describe("Article description"),
+      category_id: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Category ID for the article"),
+      author_id: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Author agent ID"),
+      associated_article_id: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Associated article ID for translations or related articles"),
+      status: z
+        .enum(["draft", "published", "archived"])
+        .optional()
+        .describe("Article status"),
+      locale: z.string().min(1).optional().describe("Article locale"),
+      meta: z
+        .record(z.unknown())
+        .optional()
+        .describe("Search metadata such as tags, title, or description"),
+    })
+  )
+  .strict();
+
+export type UpdateHelpCenterArticleInput = z.infer<
+  typeof UpdateHelpCenterArticleSchema
 >;
 
 /**
@@ -503,6 +778,80 @@ export async function createHelpCenterArticle(
   }
 }
 
+/**
+ * Update a help center article in a portal
+ */
+export async function updateHelpCenterArticle(
+  params: UpdateHelpCenterArticleInput
+) {
+  try {
+    const client = getClient();
+    const { account_id, portal_id, article_id, status, ...body } = params;
+    const updateBody = {
+      ...body,
+      ...(status ? { status: ArticleStatusValue[status] } : {}),
+    };
+
+    if (!hasDefinedValue(updateBody)) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: At least one article field must be provided for update.",
+          },
+        ],
+      };
+    }
+
+    const { data, error, response } = await client.PATCH(
+      "/api/v1/accounts/{account_id}/portals/{id}/articles/{article_id}",
+      {
+        params: {
+          path: {
+            account_id,
+            id: String(portal_id),
+            article_id,
+          },
+        },
+        body: updateBody as any,
+      }
+    );
+
+    if (error || !data) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: handleApiError({ response, error }),
+          },
+        ],
+      };
+    }
+
+    const article = formatArticle(unwrapPayload(data));
+    const output = { article };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `Help center article '${article.title || article_id}' updated successfully.`,
+        },
+      ],
+      structuredContent: output,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: handleApiError(error),
+        },
+      ],
+    };
+  }
+}
+
 function formatPortal(portal: any) {
   return {
     id: portal?.id,
@@ -545,10 +894,12 @@ function formatCategory(category: any) {
     description: category?.description,
     locale: category?.locale,
     position: category?.position,
+    icon: category?.icon,
     portal_id: category?.portal_id,
     account_id: category?.account_id,
     parent_category_id: category?.parent_category_id,
     associated_category_id: category?.associated_category_id,
+    meta: category?.meta || {},
   };
 }
 
@@ -558,13 +909,32 @@ function formatArticle(article: any) {
     title: article?.title,
     slug: article?.slug,
     content: article?.content,
+    description: article?.description,
     status: article?.status,
     position: article?.position,
     views: article?.views,
+    updated_at: article?.updated_at,
     portal_id: article?.portal_id,
     account_id: article?.account_id,
     author_id: article?.author_id,
+    author: article?.author
+      ? {
+          id: article.author.id,
+          name: article.author.name,
+          available_name: article.author.available_name,
+          email: article.author.email,
+          role: article.author.role,
+        }
+      : null,
     category_id: article?.category_id,
+    category: article?.category
+      ? {
+          id: article.category.id,
+          name: article.category.name,
+          slug: article.category.slug,
+          locale: article.category.locale,
+        }
+      : null,
     folder_id: article?.folder_id,
     associated_article_id: article?.associated_article_id,
     meta: article?.meta || {},
@@ -585,6 +955,69 @@ function formatPortalsMarkdown(portals: ReturnType<typeof formatPortal>[]) {
     );
     lines.push(`- **Categories**: ${portal.meta?.categories_count ?? "N/A"}`);
     lines.push(`- **Default Locale**: ${portal.meta?.default_locale || "N/A"}`);
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+function formatArticlesMarkdown(
+  articles: ReturnType<typeof formatArticle>[],
+  meta: any
+) {
+  const lines = [
+    "# Help Center Articles",
+    "",
+    `Total: ${meta?.articles_count ?? articles.length}`,
+    `Page: ${meta?.current_page ?? 1}`,
+    `Published: ${meta?.published_count ?? "N/A"}`,
+    `Drafts: ${meta?.draft_articles_count ?? "N/A"}`,
+    "",
+  ];
+
+  for (const article of articles) {
+    lines.push(`## ${article.title || "Untitled article"}`);
+    lines.push(`- **ID**: ${article.id ?? "N/A"}`);
+    lines.push(`- **Slug**: ${article.slug || "N/A"}`);
+    lines.push(`- **Status**: ${article.status || "N/A"}`);
+    lines.push(`- **Position**: ${article.position ?? "N/A"}`);
+    lines.push(`- **Views**: ${article.views ?? "N/A"}`);
+    lines.push(`- **Updated At**: ${article.updated_at ?? "N/A"}`);
+    lines.push(
+      `- **Category**: ${article.category?.name || article.category?.slug || "N/A"}`
+    );
+    if (article.description) {
+      lines.push(`- **Description**: ${article.description}`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+function formatCategoriesMarkdown(
+  categories: ReturnType<typeof formatCategory>[],
+  meta: any
+) {
+  const lines = [
+    "# Help Center Categories",
+    "",
+    `Total: ${meta?.categories_count ?? categories.length}`,
+    `Page: ${meta?.current_page ?? 1}`,
+    "",
+  ];
+
+  for (const category of categories) {
+    lines.push(`## ${category.name || "Untitled category"}`);
+    lines.push(`- **ID**: ${category.id ?? "N/A"}`);
+    lines.push(`- **Slug**: ${category.slug || "N/A"}`);
+    lines.push(`- **Locale**: ${category.locale || "N/A"}`);
+    lines.push(`- **Position**: ${category.position ?? "N/A"}`);
+    lines.push(`- **Icon**: ${category.icon || "N/A"}`);
+    lines.push(`- **Articles**: ${category.meta?.articles_count ?? "N/A"}`);
+    if (category.description) {
+      lines.push(`- **Description**: ${category.description}`);
+    }
     lines.push("");
   }
 

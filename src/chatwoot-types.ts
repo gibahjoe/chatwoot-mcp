@@ -1130,7 +1130,11 @@ export interface paths {
             };
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List all categories
+         * @description List all categories in a help center portal
+         */
+        get: operations["list-all-categories-in-portal"];
         put?: never;
         /**
          * Add a new category
@@ -1155,7 +1159,11 @@ export interface paths {
             };
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List all articles
+         * @description List all articles in a help center portal
+         */
+        get: operations["list-all-articles-in-portal"];
         put?: never;
         /**
          * Add a new article
@@ -1166,6 +1174,33 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts/{account_id}/portals/{id}/articles/{article_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+                /** @description The numeric ID of the help center article */
+                article_id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update an article
+         * @description Update an article in a help center portal
+         */
+        patch: operations["update-article-in-portal"];
         trace?: never;
     };
     "/api/v1/accounts/{account_id}/conversations/meta": {
@@ -2396,25 +2431,44 @@ export interface components {
             locale?: string;
             name?: string;
             slug?: string;
-            position?: number;
+            position?: number | null;
             portal_id?: number;
             account_id?: number;
+            /** @description The icon of the category as a string */
+            icon?: string | null;
+            meta?: {
+                /** @description Number of articles in the category */
+                articles_count?: number;
+            };
             /** @description To associate similar categories to each other, e.g same category of product documentation in different languages */
             associated_category_id?: number;
             /** @description To define parent category, e.g product documentation has multiple level features in sales category or in engineering category. */
             parent_category_id?: number;
         };
+        category_list: {
+            payload?: components["schemas"]["category"][];
+            meta?: components["schemas"]["category_list_meta"];
+        };
+        category_list_meta: {
+            current_page?: number;
+            categories_count?: number;
+        };
         article: {
             id?: number;
             /** @description The text content. */
             content?: string;
+            /** @description The article description. */
+            description?: string | null;
             meta?: Record<string, never>;
-            position?: number;
-            /** @enum {integer} */
+            position?: number | null;
+            /** @enum {string} */
             status?: "draft" | "published" | "archived";
             title?: string;
             slug?: string;
-            views?: number;
+            views?: number | null;
+            updated_at?: number;
+            category?: components["schemas"]["article_category"];
+            author?: components["schemas"]["article_author"];
             portal_id?: number;
             account_id?: number;
             author_id?: number;
@@ -2422,6 +2476,39 @@ export interface components {
             folder_id?: number;
             /** @description To associate similar articles to each other, e.g to provide the link for the reference. */
             associated_article_id?: number;
+        };
+        article_list: {
+            payload?: components["schemas"]["article"][];
+            meta?: components["schemas"]["article_list_meta"];
+        };
+        article_list_meta: {
+            all_articles_count?: number;
+            archived_articles_count?: number;
+            articles_count?: number;
+            current_page?: string;
+            draft_articles_count?: number;
+            mine_articles_count?: number;
+            published_count?: number;
+        };
+        article_category: {
+            id?: number | null;
+            name?: string | null;
+            slug?: string | null;
+            locale?: string | null;
+        };
+        article_author: {
+            id?: number;
+            account_id?: number;
+            availability_status?: string;
+            auto_offline?: boolean;
+            confirmed?: boolean;
+            email?: string;
+            provider?: string;
+            available_name?: string;
+            name?: string;
+            role?: string;
+            thumbnail?: string | null;
+            custom_role_id?: number | null;
         };
         contact: {
             payload?: {
@@ -7974,6 +8061,45 @@ export interface operations {
             };
         };
     };
+    "list-all-categories-in-portal": {
+        parameters: {
+            query?: {
+                /** @description Filter categories by locale */
+                locale?: string;
+                /** @description Page number for pagination */
+                page?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["category_list"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
     "add-new-category-to-account": {
         parameters: {
             query?: never;
@@ -8012,6 +8138,53 @@ export interface operations {
             };
         };
     };
+    "list-all-articles-in-portal": {
+        parameters: {
+            query?: {
+                /** @description Page number for pagination */
+                page?: number;
+                /** @description Locale filter for articles */
+                locale?: string;
+                /** @description Category slug filter. Omit to list articles across all categories. */
+                category_slug?: string;
+                /** @description Full-text search query across article title, description, and content */
+                query?: string;
+                /** @description Article status filter */
+                status?: "draft" | "published" | "archived";
+                /** @description Filter articles by author user ID */
+                author_id?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["article_list"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
     "add-new-article-to-account": {
         parameters: {
             query?: never;
@@ -8021,6 +8194,46 @@ export interface operations {
                 account_id: components["parameters"]["account_id"];
                 /** @description The slug identifier of the portal */
                 id: components["parameters"]["portal_id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["article_create_update_payload"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["article"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
+    "update-article-in-portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+                /** @description The numeric ID of the help center article */
+                article_id: number;
             };
             cookie?: never;
         };
