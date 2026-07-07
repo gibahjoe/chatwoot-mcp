@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/gibahjoe/chatwoot-mcp/compare/chatwoot-mcp-server-v1.1.0...chatwoot-mcp-server-v1.2.0) (2026-07-07)
+
+
+### Features
+
+* add Chatwoot file upload support ([59d3fc4](https://github.com/gibahjoe/chatwoot-mcp/commit/59d3fc4667467ad02cc72c81fec5820387eb8ac2))
+
 ## [1.1.0](https://github.com/gibahjoe/chatwoot-mcp/compare/chatwoot-mcp-server-v1.0.0...chatwoot-mcp-server-v1.1.0) (2026-07-07)
 
 
