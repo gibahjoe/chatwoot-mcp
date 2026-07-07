@@ -43,7 +43,9 @@ export async function createChatwootClient(config: ChatwootClientConfig) {
     const authMiddleware: Middleware = {
       async onRequest({ request }) {
         request.headers.set("api_access_token", config.apiAccessToken!);
-        request.headers.set("Content-Type", "application/json");
+        if (!request.headers.has("Content-Type")) {
+          request.headers.set("Content-Type", "application/json");
+        }
         return request;
       },
     };
@@ -113,7 +115,9 @@ export async function createChatwootClient(config: ChatwootClientConfig) {
       request.headers.set("access-token", tokens!.accessToken);
       request.headers.set("expiry", tokens!.expiry);
       request.headers.set("token-type", "Bearer");
-      request.headers.set("Content-Type", "application/json");
+      if (!request.headers.has("Content-Type")) {
+        request.headers.set("Content-Type", "application/json");
+      }
 
       return request;
     },

@@ -26,6 +26,7 @@ import {
   createMessage,
   CreateMessageSchema,
 } from "./tools/messages.js";
+import { uploadFile, UploadFileSchema } from "./tools/uploads.js";
 import {
   listHelpCenterPortals,
   ListHelpCenterPortalsSchema,
@@ -236,6 +237,36 @@ Examples:
     createMessage
   );
 
+  server.registerTool(
+    "chatwoot_upload_file",
+    {
+      title: "Upload File to Chatwoot",
+      description: `Upload a local file to a Chatwoot account.
+
+Use this before creating or updating a help center article that needs an image or file. The tool returns file_url and blob_id. To embed an uploaded image in article content, add Markdown like ![](file_url) using the returned file_url.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - file_path (string): Local path to the file to upload (required)
+  - filename (string): Optional filename to send to Chatwoot
+  - content_type (string): Optional MIME type, such as image/png
+  - response_format (string): Output format - "markdown" or "json" (default: "markdown")
+
+Returns:
+  Upload details including:
+  - file_url: URL to use in article Markdown or other Chatwoot content
+  - blob_id: Chatwoot/Active Storage blob identifier`,
+      inputSchema: UploadFileSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    uploadFile
+  );
+
   // Help Center
   server.registerTool(
     "chatwoot_list_help_center_portals",
@@ -399,6 +430,8 @@ Returns:
       title: "Create Chatwoot Help Center Article",
       description: `Create an article in a Chatwoot help center portal.
 
+For images or file embeds, first call chatwoot_upload_file, then insert the returned file_url into content using Markdown such as ![](file_url).
+
 Args:
   - account_id (number): The numeric ID of the Chatwoot account (required)
   - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
@@ -429,6 +462,8 @@ Args:
     {
       title: "Update Chatwoot Help Center Article",
       description: `Update an article in a Chatwoot help center portal.
+
+For images or file embeds, first call chatwoot_upload_file, then insert the returned file_url into content using Markdown such as ![](file_url).
 
 Args:
   - account_id (number): The numeric ID of the Chatwoot account (required)

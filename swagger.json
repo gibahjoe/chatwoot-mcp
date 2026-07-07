@@ -4431,6 +4431,68 @@
         }
       }
     },
+    "/api/v1/accounts/{account_id}/upload": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/account_id"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "operationId": "upload-file-to-account",
+        "summary": "Upload a file",
+        "description": "Upload a file attachment to a Chatwoot account",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "attachment"
+                ],
+                "properties": {
+                  "attachment": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File attachment to upload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/upload_response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/accounts/{account_id}/conversations/meta": {
       "parameters": [
         {
@@ -8862,6 +8924,19 @@
           "custom_role_id": {
             "type": "integer",
             "nullable": true
+          }
+        }
+      },
+      "upload_response": {
+        "type": "object",
+        "properties": {
+          "file_url": {
+            "type": "string",
+            "description": "Public URL for the uploaded file"
+          },
+          "blob_id": {
+            "type": "string",
+            "description": "Active Storage signed blob identifier"
           }
         }
       },

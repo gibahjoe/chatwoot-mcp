@@ -1203,6 +1203,29 @@ export interface paths {
         patch: operations["update-article-in-portal"];
         trace?: never;
     };
+    "/api/v1/accounts/{account_id}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a file
+         * @description Upload a file attachment to a Chatwoot account
+         */
+        post: operations["upload-file-to-account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounts/{account_id}/conversations/meta": {
         parameters: {
             query?: never;
@@ -2509,6 +2532,12 @@ export interface components {
             role?: string;
             thumbnail?: string | null;
             custom_role_id?: number | null;
+        };
+        upload_response: {
+            /** @description Public URL for the uploaded file */
+            file_url?: string;
+            /** @description Active Storage signed blob identifier */
+            blob_id?: string;
         };
         contact: {
             payload?: {
@@ -8250,6 +8279,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["article"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
+    "upload-file-to-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description File attachment to upload
+                     */
+                    attachment: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["upload_response"];
                 };
             };
             /** @description Access denied */

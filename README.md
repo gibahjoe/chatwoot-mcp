@@ -22,6 +22,10 @@ Model Context Protocol (MCP) server for Chatwoot API integration. Enables AI ass
 - `chatwoot_list_messages` - List all messages in a conversation
 - `chatwoot_create_message` - Send a message or create an internal note
 
+### Uploads
+
+- `chatwoot_upload_file` - Upload a local file and return a `file_url`/`blob_id` for use in articles or other content
+
 ### Help Center
 
 - `chatwoot_list_help_center_portals` - List help center portals in an account
@@ -143,6 +147,7 @@ Once connected, you can ask Claude things like:
 - "List all messages in conversation #456"
 - "Send a reply to conversation #789 saying 'Thank you for contacting us!'"
 - "Add an internal note to conversation #101 about the customer's issue"
+- "Upload ./screenshot.png to account 3 so I can embed it in a help center article"
 - "List help center portals in account 3"
 - "List help center categories in portal slug 'user-guide' for locale 'en'"
 - "Search draft help center articles in portal slug 'user-guide' for 'downloads'"

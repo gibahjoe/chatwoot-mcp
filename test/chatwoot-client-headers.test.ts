@@ -58,6 +58,26 @@ describe("Chatwoot client auth headers", () => {
     expect(request.headers.get("Content-Type")).toBe("application/json");
   });
 
+  it("preserves multipart content type for API token requests", async () => {
+    await createChatwootClient({
+      baseUrl: "https://chatwoot.example",
+      apiAccessToken: "api-token-123",
+    });
+
+    const middleware = mocks.client.use.mock.calls[0][0];
+    const formData = new FormData();
+    formData.append("attachment", new Blob(["file"]), "file.txt");
+    const request = new Request("https://chatwoot.example/api/v1/accounts/1/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    await middleware.onRequest({ request });
+
+    expect(request.headers.get("api_access_token")).toBe("api-token-123");
+    expect(request.headers.get("Content-Type")).toContain("multipart/form-data");
+  });
+
   it("adds cached JWT auth headers to requests", async () => {
     mocks.loadTokens.mockResolvedValue({
       uid: "agent@example.com",
