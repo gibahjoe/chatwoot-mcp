@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     GET: vi.fn(),
     POST: vi.fn(),
     PATCH: vi.fn(),
+    DELETE: vi.fn(),
   },
   getClient: vi.fn(),
 }));
@@ -18,8 +19,11 @@ const {
   listHelpCenterPortals,
   listHelpCenterCategories,
   listHelpCenterArticles,
+  getHelpCenterArticle,
   createHelpCenterArticle,
   updateHelpCenterArticle,
+  updateHelpCenterCategory,
+  deleteHelpCenterCategory,
   updateHelpCenterPortal,
 } = await import("../src/tools/help-center.js");
 
@@ -263,6 +267,141 @@ describe("Help center MCP tools", () => {
     expect(result.content[0].text).toContain("# Help Center Articles");
   });
 
+  it("gets one full help center article", async () => {
+    mocks.client.GET.mockResolvedValue({
+      data: {
+        payload: {
+          id: 106,
+          slug: "fix-a-failed-or-stuck-download",
+          title: "Fix a failed or stuck download",
+          content: "Full article body",
+          description: "Troubleshoot failed downloads.",
+          status: "published",
+          views: 42,
+          category: {
+            id: 32,
+            name: "Downloads & Offline",
+            slug: "downloads-and-offline",
+            locale: "en",
+          },
+        },
+      },
+      response: { status: 200 },
+    });
+
+    const result = await getHelpCenterArticle({
+      account_id: 1,
+      portal_id: "phyn-help-centre",
+      article_id: 106,
+      response_format: ResponseFormat.MARKDOWN,
+    });
+
+    expect(mocks.client.GET).toHaveBeenCalledWith(
+      "/api/v1/accounts/{account_id}/portals/{id}/articles/{article_id}",
+      {
+        params: {
+          path: {
+            account_id: 1,
+            id: "phyn-help-centre",
+            article_id: 106,
+          },
+        },
+      }
+    );
+    expect(result.structuredContent).toEqual({
+      article: expect.objectContaining({
+        id: 106,
+        title: "Fix a failed or stuck download",
+        content: "Full article body",
+        views: 42,
+      }),
+    });
+    expect(result.content[0].text).toContain("## Content");
+    expect(result.content[0].text).toContain("Full article body");
+  });
+
+  it("updates help center category metadata", async () => {
+    mocks.client.PATCH.mockResolvedValue({
+      data: {
+        id: 32,
+        name: "Downloads",
+        slug: "downloads",
+        locale: "en",
+        description: "Download help.",
+        position: 10,
+        account_id: 1,
+      },
+      response: { status: 200 },
+    });
+
+    const result = await updateHelpCenterCategory({
+      account_id: 1,
+      portal_id: "phyn-help-centre",
+      category_id: 32,
+      name: "Downloads",
+      slug: "downloads",
+      position: 10,
+      description: "Download help.",
+    });
+
+    expect(mocks.client.PATCH).toHaveBeenCalledWith(
+      "/api/v1/accounts/{account_id}/portals/{id}/categories/{category_id}",
+      {
+        params: {
+          path: {
+            account_id: 1,
+            id: "phyn-help-centre",
+            category_id: 32,
+          },
+        },
+        body: {
+          name: "Downloads",
+          slug: "downloads",
+          position: 10,
+          description: "Download help.",
+        },
+      }
+    );
+    expect(result.structuredContent).toEqual({
+      category: expect.objectContaining({
+        id: 32,
+        name: "Downloads",
+        slug: "downloads",
+        position: 10,
+      }),
+    });
+  });
+
+  it("deletes help center categories", async () => {
+    mocks.client.DELETE.mockResolvedValue({
+      response: { status: 200 },
+    });
+
+    const result = await deleteHelpCenterCategory({
+      account_id: 1,
+      portal_id: "phyn-help-centre",
+      category_id: 32,
+    });
+
+    expect(mocks.client.DELETE).toHaveBeenCalledWith(
+      "/api/v1/accounts/{account_id}/portals/{id}/categories/{category_id}",
+      {
+        params: {
+          path: {
+            account_id: 1,
+            id: "phyn-help-centre",
+            category_id: 32,
+          },
+        },
+      }
+    );
+    expect(result.structuredContent).toEqual({
+      deleted: true,
+      category_id: 32,
+    });
+    expect(result.content[0].text).toContain("does not support archiving");
+  });
+
   it("creates articles with numeric Chatwoot status values", async () => {
     mocks.client.POST.mockResolvedValue({
       data: {
@@ -361,6 +500,19 @@ describe("Help center MCP tools", () => {
     expect(mocks.client.PATCH).not.toHaveBeenCalled();
     expect(result.content[0].text).toBe(
       "Error: At least one article field must be provided for update."
+    );
+  });
+
+  it("rejects empty category updates before calling Chatwoot", async () => {
+    const result = await updateHelpCenterCategory({
+      account_id: 1,
+      portal_id: "docs",
+      category_id: 32,
+    });
+
+    expect(mocks.client.PATCH).not.toHaveBeenCalled();
+    expect(result.content[0].text).toBe(
+      "Error: At least one category field must be provided for update."
     );
   });
 

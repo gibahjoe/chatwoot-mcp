@@ -4215,6 +4215,98 @@
         }
       }
     },
+    "/api/v1/accounts/{account_id}/portals/{id}/categories/{category_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/account_id"
+        },
+        {
+          "$ref": "#/components/parameters/portal_id"
+        },
+        {
+          "name": "category_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          },
+          "description": "The numeric ID of the help center category"
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Help Center"
+        ],
+        "operationId": "update-category-in-portal",
+        "summary": "Update a category",
+        "description": "Update a category in a help center portal",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/category_create_update_payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/category"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Help Center"
+        ],
+        "operationId": "delete-category-in-portal",
+        "summary": "Delete a category",
+        "description": "Delete a category in a help center portal. Chatwoot does not expose category archiving; deleting a category removes the category and leaves existing articles uncategorized.",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/accounts/{account_id}/portals/{id}/articles": {
       "parameters": [
         {
@@ -4385,6 +4477,41 @@
           "description": "The numeric ID of the help center article"
         }
       ],
+      "get": {
+        "tags": [
+          "Help Center"
+        ],
+        "operationId": "get-article-in-portal",
+        "summary": "Get an article",
+        "description": "Get a single article in a help center portal",
+        "security": [
+          {
+            "userApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/article"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bad_request_error"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "Help Center"

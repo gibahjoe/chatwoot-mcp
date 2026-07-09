@@ -1147,6 +1147,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/{account_id}/portals/{id}/categories/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+                /** @description The numeric ID of the help center category */
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a category
+         * @description Delete a category in a help center portal. Chatwoot does not expose category archiving; deleting a category removes the category and leaves existing articles uncategorized.
+         */
+        delete: operations["delete-category-in-portal"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a category
+         * @description Update a category in a help center portal
+         */
+        patch: operations["update-category-in-portal"];
+        trace?: never;
+    };
     "/api/v1/accounts/{account_id}/portals/{id}/articles": {
         parameters: {
             query?: never;
@@ -1190,7 +1221,11 @@ export interface paths {
             };
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get an article
+         * @description Get a single article in a help center portal
+         */
+        get: operations["get-article-in-portal"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8167,6 +8202,80 @@ export interface operations {
             };
         };
     };
+    "delete-category-in-portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+                /** @description The numeric ID of the help center category */
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
+    "update-category-in-portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+                /** @description The numeric ID of the help center category */
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["category_create_update_payload"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["category"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
     "list-all-articles-in-portal": {
         parameters: {
             query?: {
@@ -8231,6 +8340,42 @@ export interface operations {
                 "application/json": components["schemas"]["article_create_update_payload"];
             };
         };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["article"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["bad_request_error"];
+                };
+            };
+        };
+    };
+    "get-article-in-portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The numeric ID of the account */
+                account_id: components["parameters"]["account_id"];
+                /** @description The slug identifier of the portal */
+                id: components["parameters"]["portal_id"];
+                /** @description The numeric ID of the help center article */
+                article_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {

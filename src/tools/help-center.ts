@@ -422,6 +422,71 @@ export type CreateHelpCenterCategoryInput = z.infer<
 >;
 
 /**
+ * Schema for updating a help center category
+ */
+export const UpdateHelpCenterCategorySchema = AccountIdSchema.merge(
+  PortalIdSchema
+)
+  .merge(
+    z.object({
+      category_id: z
+        .number()
+        .int()
+        .positive()
+        .describe("Numeric ID of the category to update"),
+      name: z.string().min(1).optional().describe("Category name"),
+      description: z.string().optional().describe("Category description"),
+      position: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Category sort position"),
+      slug: z.string().min(1).optional().describe("Category URL slug"),
+      locale: z.string().min(1).optional().describe("Category locale"),
+      icon: z.string().optional().describe("Category icon as a string"),
+      parent_category_id: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Parent category ID"),
+      associated_category_id: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Associated category ID for translations or related categories"),
+    })
+  )
+  .strict();
+
+export type UpdateHelpCenterCategoryInput = z.infer<
+  typeof UpdateHelpCenterCategorySchema
+>;
+
+/**
+ * Schema for deleting a help center category
+ */
+export const DeleteHelpCenterCategorySchema = AccountIdSchema.merge(
+  PortalIdSchema
+)
+  .merge(
+    z.object({
+      category_id: z
+        .number()
+        .int()
+        .positive()
+        .describe("Numeric ID of the category to delete"),
+    })
+  )
+  .strict();
+
+export type DeleteHelpCenterCategoryInput = z.infer<
+  typeof DeleteHelpCenterCategorySchema
+>;
+
+/**
  * Create a help center category in a portal
  */
 export async function createHelpCenterCategory(
@@ -463,6 +528,135 @@ export async function createHelpCenterCategory(
         {
           type: "text" as const,
           text: `Help center category '${category.name || params.name}' created successfully.`,
+        },
+      ],
+      structuredContent: output,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: handleApiError(error),
+        },
+      ],
+    };
+  }
+}
+
+/**
+ * Update a help center category in a portal
+ */
+export async function updateHelpCenterCategory(
+  params: UpdateHelpCenterCategoryInput
+) {
+  try {
+    const client = getClient();
+    const { account_id, portal_id, category_id, ...body } = params;
+
+    if (!hasDefinedValue(body)) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: At least one category field must be provided for update.",
+          },
+        ],
+      };
+    }
+
+    const { data, error, response } = await client.PATCH(
+      "/api/v1/accounts/{account_id}/portals/{id}/categories/{category_id}",
+      {
+        params: {
+          path: {
+            account_id,
+            id: String(portal_id),
+            category_id,
+          },
+        },
+        body: body as any,
+      }
+    );
+
+    if (error || !data) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: handleApiError({ response, error }),
+          },
+        ],
+      };
+    }
+
+    const category = formatCategory(unwrapPayload(data));
+    const output = { category };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `Help center category '${category.name || category_id}' updated successfully.`,
+        },
+      ],
+      structuredContent: output,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: handleApiError(error),
+        },
+      ],
+    };
+  }
+}
+
+/**
+ * Delete a help center category from a portal
+ */
+export async function deleteHelpCenterCategory(
+  params: DeleteHelpCenterCategoryInput
+) {
+  try {
+    const client = getClient();
+    const { account_id, portal_id, category_id } = params;
+
+    const { error, response } = await client.DELETE(
+      "/api/v1/accounts/{account_id}/portals/{id}/categories/{category_id}",
+      {
+        params: {
+          path: {
+            account_id,
+            id: String(portal_id),
+            category_id,
+          },
+        },
+      }
+    );
+
+    if (error) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: handleApiError({ response, error }),
+          },
+        ],
+      };
+    }
+
+    const output = { deleted: true, category_id };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text:
+            `Help center category ${category_id} deleted successfully. ` +
+            "Chatwoot does not support archiving categories; existing articles are left uncategorized.",
         },
       ],
       structuredContent: output,
@@ -532,6 +726,26 @@ export type ListHelpCenterArticlesInput = z.infer<
 >;
 
 /**
+ * Schema for getting a help center article
+ */
+export const GetHelpCenterArticleSchema = AccountIdSchema.merge(PortalIdSchema)
+  .merge(ResponseFormatSchema)
+  .merge(
+    z.object({
+      article_id: z
+        .number()
+        .int()
+        .positive()
+        .describe("Numeric ID of the article to fetch"),
+    })
+  )
+  .strict();
+
+export type GetHelpCenterArticleInput = z.infer<
+  typeof GetHelpCenterArticleSchema
+>;
+
+/**
  * List help center articles in a portal
  */
 export async function listHelpCenterArticles(
@@ -591,6 +805,61 @@ export async function listHelpCenterArticles(
     const textContent =
       params.response_format === ResponseFormat.MARKDOWN
         ? formatArticlesMarkdown(output.articles, output.meta)
+        : JSON.stringify(output, null, 2);
+
+    return {
+      content: [{ type: "text" as const, text: textContent }],
+      structuredContent: output,
+    };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: handleApiError(error),
+        },
+      ],
+    };
+  }
+}
+
+/**
+ * Get a single help center article in a portal
+ */
+export async function getHelpCenterArticle(params: GetHelpCenterArticleInput) {
+  try {
+    const client = getClient();
+
+    const { data, error, response } = await client.GET(
+      "/api/v1/accounts/{account_id}/portals/{id}/articles/{article_id}",
+      {
+        params: {
+          path: {
+            account_id: params.account_id,
+            id: String(params.portal_id),
+            article_id: params.article_id,
+          },
+        },
+      }
+    );
+
+    if (error || !data) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: handleApiError({ response, error }),
+          },
+        ],
+      };
+    }
+
+    const article = formatArticle(unwrapPayload(data));
+    const output = { article };
+
+    const textContent =
+      params.response_format === ResponseFormat.MARKDOWN
+        ? formatArticleMarkdown(article)
         : JSON.stringify(output, null, 2);
 
     return {
@@ -991,6 +1260,28 @@ function formatArticlesMarkdown(
     }
     lines.push("");
   }
+
+  return lines.join("\n");
+}
+
+function formatArticleMarkdown(article: ReturnType<typeof formatArticle>) {
+  const lines = [`# ${article.title || "Untitled article"}`, ""];
+  lines.push(`- **ID**: ${article.id ?? "N/A"}`);
+  lines.push(`- **Slug**: ${article.slug || "N/A"}`);
+  lines.push(`- **Status**: ${article.status || "N/A"}`);
+  lines.push(`- **Position**: ${article.position ?? "N/A"}`);
+  lines.push(`- **Views**: ${article.views ?? "N/A"}`);
+  lines.push(`- **Updated At**: ${article.updated_at ?? "N/A"}`);
+  lines.push(
+    `- **Category**: ${article.category?.name || article.category?.slug || "N/A"}`
+  );
+  if (article.description) {
+    lines.push(`- **Description**: ${article.description}`);
+  }
+  lines.push("");
+  lines.push("## Content");
+  lines.push("");
+  lines.push(article.content || "");
 
   return lines.join("\n");
 }

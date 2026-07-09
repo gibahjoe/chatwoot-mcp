@@ -38,8 +38,14 @@ import {
   ListHelpCenterCategoriesSchema,
   createHelpCenterCategory,
   CreateHelpCenterCategorySchema,
+  updateHelpCenterCategory,
+  UpdateHelpCenterCategorySchema,
+  deleteHelpCenterCategory,
+  DeleteHelpCenterCategorySchema,
   listHelpCenterArticles,
   ListHelpCenterArticlesSchema,
+  getHelpCenterArticle,
+  GetHelpCenterArticleSchema,
   createHelpCenterArticle,
   CreateHelpCenterArticleSchema,
   updateHelpCenterArticle,
@@ -395,6 +401,58 @@ Args:
   );
 
   server.registerTool(
+    "chatwoot_update_help_center_category",
+    {
+      title: "Update Chatwoot Help Center Category",
+      description: `Update a category in a Chatwoot help center portal.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
+  - category_id (number): Category ID to update (required)
+  - name (string): Category name (optional)
+  - description (string): Category description (optional)
+  - slug (string): Category URL slug (optional)
+  - locale (string): Category locale (optional)
+  - icon (string): Category icon as a string (optional)
+  - position (number): Sort position (optional)
+  - parent_category_id (number): Parent category ID (optional)
+  - associated_category_id (number): Associated category ID for related locales/categories (optional)`,
+      inputSchema: UpdateHelpCenterCategorySchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    updateHelpCenterCategory
+  );
+
+  server.registerTool(
+    "chatwoot_delete_help_center_category",
+    {
+      title: "Delete Chatwoot Help Center Category",
+      description: `Delete a category from a Chatwoot help center portal.
+
+Chatwoot does not expose category archiving. Deleting a category removes the category; existing articles are left uncategorized by Chatwoot.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
+  - category_id (number): Category ID to delete (required)`,
+      inputSchema: DeleteHelpCenterCategorySchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    deleteHelpCenterCategory
+  );
+
+  server.registerTool(
     "chatwoot_list_help_center_articles",
     {
       title: "List Chatwoot Help Center Articles",
@@ -422,6 +480,31 @@ Returns:
       },
     },
     listHelpCenterArticles
+  );
+
+  server.registerTool(
+    "chatwoot_get_help_center_article",
+    {
+      title: "Get Chatwoot Help Center Article",
+      description: `Get one full article from a Chatwoot help center portal without listing pages.
+
+Args:
+  - account_id (number): The numeric ID of the Chatwoot account (required)
+  - portal_id (string): Help center portal slug; Chatwoot names this path parameter "id" (required)
+  - article_id (number): Article ID to fetch (required)
+  - response_format (string): Output format - "markdown" or "json" (default: "markdown")
+
+Returns:
+  Full article details including title, description, status, category, views, metadata, and content.`,
+      inputSchema: GetHelpCenterArticleSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    getHelpCenterArticle
   );
 
   server.registerTool(
