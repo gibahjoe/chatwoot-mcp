@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/gibahjoe/chatwoot-mcp/compare/chatwoot-mcp-server-v1.2.0...chatwoot-mcp-server-v1.3.0) (2026-07-09)
+
+
+### Features
+
+* add help center category update/delete and article fetch tools ([6994284](https://github.com/gibahjoe/chatwoot-mcp/commit/699428459fefc5991f13f0c31fdea9670ef2b83b))
+
 ## [1.2.0](https://github.com/gibahjoe/chatwoot-mcp/compare/chatwoot-mcp-server-v1.1.0...chatwoot-mcp-server-v1.2.0) (2026-07-07)
 
 
